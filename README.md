@@ -40,7 +40,7 @@ Sections can be folded; the plugin remembers which.
 
 ## Highlights (setting group "Teleport highlights")
 
-All helpers below (highlights, the line and arrow, the menu changes) only start once you gain
+All helpers below (highlights, the line and arrow) only start once you gain
 Runecraft XP, and stop again after 10 minutes without any. Log in wearing full Raiments of the Eye and
 a lantern with an essence pouch in your inventory, and they start right away (off again after 5 minutes
 without Runecraft XP). The overlay box only shows after Runecraft XP; counting and the panel always run.
@@ -51,14 +51,14 @@ without Runecraft XP). The overlay box only shows after Runecraft XP; counting a
 - **Routes**, built in, the next thing to click lights up (outline, the game's yellow arrow and a line
   along recorded paths):
   - **Blood - Mory**: fairy ring, the caves (the 93 or 74 Agility shortcuts, or the long way) and the ruins.
-    The cave back the wrong way loses its Enter option while its step is next.
+    The cave back the wrong way is never highlighted.
   - **Blood - Zeah**: runestone, the 69 / 52 shortcut, dark altar, chisel + dark block, blood altar
     (bind, chisel all, bind again), the 73 climb back. Boosted Agility counts for the shortcuts.
 - **Bank**: the bank chests / bankers and the essence you used last, until inventory and pouches are full.
-- **Gear lock**: away from a bank, the Raiments of the Eye, the abyssal lantern and Rada's blessing only
-  have Examine, so a misclick never takes them off or teleports you away.
-- **Altar**: the pouch to empty next; near an altar the pouches have no Fill / Check and Empty is the
-  left-click (not at ZMI / Guardians of the Rift).
+- **Altar**: the pouch to empty next.
+
+The plugin never hides or swaps menu options (RuneLite / Jagex rules). Want Empty as the pouch
+left-click? Set it yourself with RuneLite's Menu Entry Swapper (shift + right-click the pouch).
 
 ## Developer (folded settings group)
 

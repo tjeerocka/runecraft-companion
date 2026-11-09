@@ -1891,50 +1891,6 @@ public class RunecraftCompanionPlugin extends Plugin
 		return config.routeDebug();
 	}
 
-	/** Pouch left-click near an altar: "Empty" (moved to the top, like Menu Entry Swapper). */
-	@Subscribe
-	public void onPostMenuSort(net.runelite.api.events.PostMenuSort event)
-	{
-		if (!helpersOn())
-		{
-			return;
-		}
-		// near an altar: "Empty" is the left-click (in the bank the pouches work as normal)
-		if (client.isMenuOpen() || !pouchOnlyEmpty())
-		{
-			return;
-		}
-		net.runelite.api.MenuEntry[] all = client.getMenuEntries();
-		for (int i = 0; i < all.length - 1; i++)
-		{
-			net.runelite.api.MenuEntry e = all[i];
-			if (!isPouch(e.getItemId()))
-			{
-				continue;
-			}
-			if ("empty".equalsIgnoreCase(Text.removeTags(e.getOption())))
-			{
-				// it can be a low-priority option (listed under "Use"); as the left-click the game
-				// would open the menu instead, so make it a normal option (like Menu Entry Swapper)
-				if (e.getType() == net.runelite.api.MenuAction.CC_OP_LOW_PRIORITY)
-				{
-					e.setType(net.runelite.api.MenuAction.CC_OP);
-				}
-				// the last entry is the left-click
-				all[i] = all[all.length - 1];
-				all[all.length - 1] = e;
-				client.setMenuEntries(all);
-				return;
-			}
-		}
-	}
-
-	/** Within 10 tiles of an altar (not at ZMI or Guardians of the Rift, where you fill there). */
-	private boolean pouchOnlyEmpty()
-	{
-		return nearAltar() && !zmiMode && lastEssence != RuneIds.GUARDIAN_ESSENCE;
-	}
-
 	// ---------- the way to the next step: hint arrow, line; path recorder ----------
 
 	private volatile WorldPoint nextTarget;     // the next thing to click (null = nothing, or you use it now)
@@ -2153,71 +2109,6 @@ public class RunecraftCompanionPlugin extends Plugin
 		return lastRcXpMillis >= 0;
 	}
 
-	/** Gear locked away from a bank: the Raiments of the Eye, the abyssal lantern, Rada's blessing. */
-	static boolean isLockedGearName(String name)
-	{
-		if (name == null)
-		{
-			return false;
-		}
-		String n = name.toLowerCase();
-		return (n.contains("of the eye") && !n.startsWith("amulet")) || n.startsWith("abyssal lantern")
-			|| n.startsWith("rada's blessing");
-	}
-
-	private boolean isLockedGear(int itemId)
-	{
-		String name = itemNames.computeIfAbsent(itemId, i -> itemManager.getItemComposition(i).getName());
-		return isLockedGearName(name);
-	}
-
-	/** The bank is open, or a bank chest / booth / banker is within 15 tiles. */
-	private boolean nearBank()
-	{
-		if (bankOpen())
-		{
-			return true;
-		}
-		for (net.runelite.api.GameObject o : bankObjects)
-		{
-			if (o.getPlane() == client.getPlane() && distanceTo(o) <= 15)
-			{
-				return true;
-			}
-		}
-		net.runelite.api.Player p = client.getLocalPlayer();
-		WorldPoint me = p == null ? null : p.getWorldLocation();
-		for (net.runelite.api.NPC n : bankNpcs)
-		{
-			WorldPoint w = n.getWorldLocation();
-			if (me != null && w != null && w.getPlane() == me.getPlane()
-				&& Math.abs(w.getX() - me.getX()) <= 15 && Math.abs(w.getY() - me.getY()) <= 15)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/** Remove the menu entry that was just added (it is the last one). */
-	private void removeMenuEntry(net.runelite.api.MenuEntry e)
-	{
-		net.runelite.api.MenuEntry[] all = client.getMenuEntries();
-		if (all.length > 0 && all[all.length - 1] == e)
-		{
-			client.setMenuEntries(java.util.Arrays.copyOf(all, all.length - 1));
-		}
-	}
-
-	/** Within this many tiles of an altar, the pouches have no Fill option. */
-	private static final int ALTAR_RANGE = 10;
-
-	/** You stand within 10 tiles of an altar (any object with "Craft-rune"). */
-	private boolean nearAltar()
-	{
-		return nearAltar(ALTAR_RANGE);
-	}
-
 	/** You stand within 'range' tiles of an altar (any object with "Craft-rune"). */
 	private boolean nearAltar(int range)
 	{
@@ -2245,44 +2136,13 @@ public class RunecraftCompanionPlugin extends Plugin
 		return itemId == SMALL_POUCH || PouchTracker.of(itemId) != null;
 	}
 
-	/** Route debug: the object ID in the right-click menu. Also hides the wrong-way objects' options. ("Examine Cave (ID 43762)"). */
+	/** Route debug: the object ID and spot in the right-click menu ("Examine Cave (ID 43762, x, y, plane)"). */
+	// Only text is added here. Menu options are never hidden or swapped: the RuneLite / Jagex
+	// rules do not allow menu changes that depend on where you are or what you do.
 	@Subscribe
 	public void onMenuEntryAdded(net.runelite.api.events.MenuEntryAdded event)
 	{
 		net.runelite.api.MenuEntry e = event.getMenuEntry();
-		if (!helpersOn())
-		{
-			if (routeDebug() && e.getType() == net.runelite.api.MenuAction.EXAMINE_OBJECT)
-			{
-				debugExamine(e);
-			}
-			return;
-		}
-		// while a step is the highlighted one: no "Enter" on the object next to it that takes you
-		// back the wrong way (step 4 from the other side); "Walk here" and "Examine" stay
-		java.util.Set<Integer> at = route().hiddenAt.get(e.getIdentifier());
-		if (at != null && at.contains(nextStep) && isObjectAction(e.getType()))
-		{
-			removeMenuEntry(e);
-			return;
-		}
-		// within 10 tiles of an altar: no "Fill" and no "Check" on the essence pouches, so "Empty" is
-		// the left-click (the colossal pouch has Fill, Check, Empty: without Fill, Check was on top)
-		// (not at ZMI or Guardians of the Rift: there you fill your pouches next to the altar)
-		String opt = Text.removeTags(e.getOption());
-		// runecrafting gear: only "Examine" away from a bank, so a misclick never takes it off
-		// or teleports you away (Rada's blessing)
-		if (e.getItemId() > 0 && !"examine".equalsIgnoreCase(opt) && isLockedGear(e.getItemId()) && !nearBank())
-		{
-			removeMenuEntry(e);
-			return;
-		}
-		if (("fill".equalsIgnoreCase(opt) || "check".equalsIgnoreCase(opt)) && isPouch(e.getItemId())
-			&& pouchOnlyEmpty())
-		{
-			removeMenuEntry(e);
-			return;
-		}
 		if (routeDebug() && e.getType() == net.runelite.api.MenuAction.EXAMINE_OBJECT)
 		{
 			debugExamine(e);

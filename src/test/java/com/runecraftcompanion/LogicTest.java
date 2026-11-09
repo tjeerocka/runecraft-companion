@@ -675,7 +675,6 @@ public class LogicTest
 		assertFalse(AltarRoute.same(r.steps.get(1), new int[]{5046, 3467, 9820, 1}));
 		// the way back through step 4 is never highlighted
 		assertTrue(r.hidden.contains(43763));
-		assertTrue(r.hiddenAt.get(43763).contains(3));   // only while step 4 is next
 		// an altar without a route
 		assertEquals(0, AltarRoute.of(1, 99).steps.size());
 	}
@@ -743,11 +742,11 @@ public class LogicTest
 		assertEquals(7, AltarRoute.of(12875, 80).steps.size());
 		assertEquals(0, AltarRoute.of(12875, 73).minAgility);
 		assertEquals(5, AltarRoute.of(12875, 50).steps.size());
-		// 74 route: cave 43755 is step 5; 43756 / 43757 (the way back) blocked at steps 5 and 6
+		// 74 route: cave 43755 is step 5; 43756 / 43757 (the way back) never highlighted
 		AltarRoute r = AltarRoute.of(12875, 80);
 		assertEquals(43755, r.steps.get(4)[0]);
 		assertEquals(3560, r.steps.get(4)[1]);
-		assertTrue(r.hiddenAt.get(43756).contains(4) && r.hiddenAt.get(43756).contains(5));
+		assertTrue(r.hidden.contains(43756));
 		assertTrue(r.hidden.contains(43757));
 		// a spot not known yet (-1) is filled in from the closest object with that ID
 		AltarRoute u = new AltarRoute("test", 0, false, 1, new int[]{9, -1, -1, 0});
@@ -965,17 +964,6 @@ public class LogicTest
 		assertNotNull(RunecraftCompanionPlugin.class.getResource("icon.png"));
 		assertNotNull(RuneyFrames.class.getResource("runey_sheet.png"));
 		assertNotNull(RuneyFrames.class.getResource("runey_mask.png"));
-	}
-
-	@Test
-	public void runecraftingGearIsLocked()
-	{
-		assertTrue(RunecraftCompanionPlugin.isLockedGearName("Hat of the eye (red)"));
-		assertTrue(RunecraftCompanionPlugin.isLockedGearName("Robe top of the Eye"));
-		assertTrue(RunecraftCompanionPlugin.isLockedGearName("Abyssal lantern (blisterwood logs)"));
-		assertTrue(RunecraftCompanionPlugin.isLockedGearName("Rada's blessing 4"));
-		assertFalse(RunecraftCompanionPlugin.isLockedGearName("Amulet of the eye"));
-		assertFalse(RunecraftCompanionPlugin.isLockedGearName("Quest point cape"));
 	}
 
 	@Test

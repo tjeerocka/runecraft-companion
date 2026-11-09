@@ -24,8 +24,6 @@ public class AltarRoute
 	final List<int[]> steps;
 	/** Objects never highlighted on this route (the way back through a cave, from the other side). */
 	final java.util.Set<Integer> hidden = new java.util.HashSet<>();
-	/** Object ID -> steps (index): no "Enter" on that object while one of those steps is the highlighted one. */
-	final Map<Integer, java.util.Set<Integer>> hiddenAt = new HashMap<>();
 
 	AltarRoute(String name, boolean fairyRing, int altar, int[]... steps)
 	{
@@ -43,13 +41,12 @@ public class AltarRoute
 		this.steps = Collections.unmodifiableList(list);
 	}
 
-	/** The way back at step 'step' (1 = first): never highlighted, and no options while that step is next. */
-	AltarRoute hide(int step, int... ids)
+	/** Objects on the way back (a cave from the other side): never highlighted. */
+	AltarRoute hide(int... ids)
 	{
 		for (int id : ids)
 		{
 			hidden.add(id);
-			hiddenAt.computeIfAbsent(id, k -> new java.util.HashSet<>()).add(step - 1);
 		}
 		return this;
 	}
@@ -77,7 +74,7 @@ public class AltarRoute
 			new int[]{43759, 3500, 9803, 0},    // 3. Cave (93 Agility)
 			new int[]{43762, 3540, 9772, 0},    // 4. Cave
 			ruins)
-			.hide(4, 43763));                   // step 4 from the other side (the way back)
+			.hide(43763));                      // step 4 from the other side (the way back)
 		int[] cave3 = {12770, 3484, 9832, 0};   // Cave entrance
 		int[] cave4 = {12771, 3492, 9861, 0};   // Cave entrance
 		// 74 Agility
@@ -86,8 +83,7 @@ public class AltarRoute
 			new int[]{43755, 3560, 9813, 0},    // 5. Cave (74 Agility)
 			new int[]{43758, 3555, 9787, 0},    // 6. Cave
 			ruins)
-			.hide(5, 43756, 43757)              // steps 5 and 6 from the other side (the way back)
-			.hide(6, 43756, 43757));
+			.hide(43756, 43757));               // steps 5 and 6 from the other side (the way back)
 		// below 74 Agility: walk around after step 4
 		add(12875, new AltarRoute("Blood - Mory", 0, true, 43479,
 			cave1, cave2, cave3, cave4,
@@ -129,7 +125,6 @@ public class AltarRoute
 		}
 		AltarRoute r = new AltarRoute(name, minAgility, fairyRing, altar, filled);
 		r.hidden.addAll(hidden);
-		r.hiddenAt.putAll(hiddenAt);
 		return r;
 	}
 
