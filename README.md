@@ -41,9 +41,9 @@ Sections can be folded; the plugin remembers which.
 ## Highlights (setting group "Teleport highlights")
 
 All helpers below (highlights, the line and arrow) only start once you gain
-Runecraft XP, and stop again after 10 minutes without any. Log in wearing full Raiments of the Eye and
+Runecraft XP at an altar (lamps, books and quest rewards elsewhere are ignored), and stop again after 10 minutes without any. Log in wearing full Raiments of the Eye and
 a lantern with an essence pouch in your inventory, and they start right away (off again after 5 minutes
-without Runecraft XP). The overlay box only shows after Runecraft XP; counting and the panel always run.
+without Runecraft XP). The overlay box only shows after Runecraft XP at an altar; counting and the panel always run.
 
 - **Teleports**: the bank teleport (when you are done at the altar) and the altar teleport (when you are
   full) light up in your inventory / equipment. A teleport counts as used when you land where it takes you,

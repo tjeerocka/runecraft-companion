@@ -975,6 +975,13 @@ public class RunecraftCompanionPlugin extends Plugin
 		}
 
 		int xp = event.getXp();
+		if (lastRcXp >= 0 && xp > lastRcXp && !atAltar())
+		{
+			// XP away from an altar is a lamp, book or quest reward, not runecrafting:
+			// it must not start the helpers, resume a pause or count as crafted XP
+			lastRcXp = xp;
+			return;
+		}
 		if (lastRcXp >= 0 && xp > lastRcXp)
 		{
 			lastRcXpMillis = System.currentTimeMillis();   // you runecraft: the helpers start
@@ -2108,6 +2115,15 @@ public class RunecraftCompanionPlugin extends Plugin
 	{
 		return lastRcXpMillis >= 0;
 	}
+
+	/** Runecraft XP counts only here: next to an altar (craft) or the Dark Altar at Zeah (imbue blocks). */
+	private boolean atAltar()
+	{
+		return nearAltar(XP_ALTAR_RANGE) || near(ZEAH_DARK_ALTAR, 15);
+	}
+
+	/** Within this many tiles of an altar, Runecraft XP is from crafting. */
+	private static final int XP_ALTAR_RANGE = 10;
 
 	/** You stand within 'range' tiles of an altar (any object with "Craft-rune"). */
 	private boolean nearAltar(int range)
